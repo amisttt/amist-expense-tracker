@@ -629,38 +629,56 @@ function showScreen(id) {
 // Sets income for current month ONLY.
 // Past summaries are not touched.
 // ─────────────────────────────────────────
-
 function setupIncomeModal() {
   const modal   = document.getElementById('income-modal');
   const inputEl = document.getElementById('income-input');
+  const btnOpen = document.getElementById('btn-set-income');
+  const btnCancel = document.getElementById('modal-cancel');
+  const btnSave = document.getElementById('modal-save');
 
-  document.getElementById('btn-set-income').addEventListener('click', () => {
-    inputEl.value       = getIncome() || '';
-    modal.style.display = 'flex';
-    setTimeout(() => inputEl.focus(), 100);
-  });
+  if (!modal || !inputEl) return;
 
-  document.getElementById('modal-cancel').addEventListener('click', () => {
-    modal.style.display = 'none';
-  });
+  // Open modal
+  if (btnOpen) {
+    btnOpen.addEventListener('click', () => {
+      inputEl.value = getIncome() || '';
+      modal.style.display = 'flex';
+      setTimeout(() => inputEl.focus(), 100);
+    });
+  }
 
+  // Cancel
+  if (btnCancel) {
+    btnCancel.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+  }
+
+  // Click outside modal
   modal.addEventListener('click', e => {
     if (e.target === modal) modal.style.display = 'none';
   });
 
-  document.getElementById('modal-save').addEventListener('click', () => {
-    const v = parseFloat(inputEl.value);
-    if (isNaN(v) || v < 0) return;
-    setIncome(v);                // only current month
-    modal.style.display = 'none';
-    render();
-  });
+  // Save
+  if (btnSave) {
+    btnSave.addEventListener('click', () => {
+      const v = parseFloat(inputEl.value);
+      if (isNaN(v) || v < 0) return;
 
+      setIncome(v);
+      modal.style.display = 'none';
+
+      render(); // keep this (correct here)
+    });
+  }
+
+  // Enter key
   inputEl.addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('modal-save').click();
+    if (e.key === 'Enter' && btnSave) {
+      btnSave.click();
+    }
   });
 }
-
 // ─────────────────────────────────────────
 // DASHBOARD
 // All figures computed from _expenses raw
