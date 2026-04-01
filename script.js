@@ -515,11 +515,30 @@ function handleMonthTransition() {
 // ─────────────────────────────────────────
 
 function render() {
-  switch (_currentScreen) {
-    case 'screen-dashboard':    renderDashboard();    break;
-    case 'screen-transactions': renderTransactions(); break;
-    case 'screen-summary':      renderSummary();      break;
-    case 'screen-cc':           renderCCScreen();     break;
+  try {
+    switch (_currentScreen) {
+      case 'screen-dashboard':
+        renderDashboard();
+        break;
+
+      case 'screen-transactions':
+        renderTransactions();
+        break;
+
+      case 'screen-summary':
+        renderSummary();
+        break;
+
+      case 'screen-cc':
+        renderCCScreen();
+        break;
+
+      default:
+        console.warn('Unknown screen:', _currentScreen);
+        renderDashboard();
+    }
+  } catch (err) {
+    console.error('Render crash:', err);
   }
 }
 
