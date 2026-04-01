@@ -16,6 +16,7 @@ const KEY_CC            = 'ft_cc_v3';
 const KEY_INIT          = 'ft_initialized_v4';   // bumped — triggers re-seed on fresh installs
 const KEY_INCOME_LEGACY = 'ft_income_v3';         // read-only migration source
 const KEY_TXN_ARCHIVE   = 'ft_txn_archive_v4';    // { "YYYY-MM": [transactions] } — for report export
+const KEY_SAVINGS_MONTHS = 'ft_savings_months_v1';
 
 // ─────────────────────────────────────────
 // CATEGORIES
@@ -78,7 +79,33 @@ function generateId() {
 //     the month being archived, not today's.
 // ─────────────────────────────────────────
 
-const DEFAULT_INCOME = 24000;
+// ─────────────────────────────────────────
+// SAVINGS (PER MONTH)
+// ─────────────────────────────────────────
+
+function _loadSavingsMap() {
+  try {
+    const raw = localStorage.getItem(KEY_SAVINGS_MONTHS);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function _saveSavingsMap(map) {
+  localStorage.setItem(KEY_SAVINGS_MONTHS, JSON.stringify(map));
+}
+
+function getSavingsForMonth(mk) {
+  const map = _loadSavingsMap();
+  return Number(map[mk]) || 0;
+}
+
+function setSavingsForMonth(mk, value) {
+  const map = _loadSavingsMap();
+  map[mk] = Math.max(0, Number(value) || 0);
+  _saveSavingsMap(map);
+}
+
+const DEFAULT_INCOME = 00;
 
 /** Load the full { "YYYY-MM": number } map from storage */
 function _loadIncomeMap() {
@@ -447,11 +474,12 @@ function handleMonthTransition() {
     const totalIn    = baseIncome + extraInc;
 
     // Push the frozen snapshot
+     const storedSavings = getSavingsForMonth(mk);
     _summaries.push({
       monthKey:   mk,
       income:     totalIn,
       expense:    totalEx,
-      savings:    totalIn - totalEx,
+      savings: storedSavings || (totalIn - totalEx),
       categories: catTot,
     });
 
@@ -617,22 +645,26 @@ function renderDashboard() {
   const totalExp = exps.reduce((s, e) => s + Number(e.amount), 0);
   const extraInc = incs.reduce((s, e) => s + Number(e.amount), 0);
   const totalInc = getIncome() + extraInc;   // base salary + explicit income entries
-  const balance  = totalInc - totalExp;
+  const savings  = getSavingsForMonth(cmk);
+  const balance  = totalInc - totalExp - savings;
 
   document.getElementById('dash-income').textContent  = fmtFull(totalInc);
   document.getElementById('dash-expense').textContent = fmtFull(totalExp);
   document.getElementById('dash-balance').textContent = fmtFull(Math.abs(balance));
 
+  const savingsInput = document.getElementById('savings-input');
+
+  if (savingsInput) {
+    savingsInput.value = savings || '';
+
+    savingsInput.oninput = (e) => {
+      const val = Math.max(0, Number(e.target.value) || 0);
+      setSavingsForMonth(cmk, val);
+      render();
+  };
+}
+
   // Savings badge — guard division by zero
-  const badge = document.getElementById('dash-badge');
-  if (totalInc > 0) {
-    const pct              = ((balance / totalInc) * 100).toFixed(1);
-    badge.textContent      = (balance >= 0 ? '↑ ' : '↓ ') + Math.abs(pct) + '% saved';
-    badge.style.background = balance >= 0 ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)';
-  } else {
-    badge.textContent      = '—';
-    badge.style.background = 'rgba(255,255,255,0.18)';
-  }
 
   document.getElementById('chart-month-label').textContent =
     new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
