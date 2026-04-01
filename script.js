@@ -105,7 +105,7 @@ function setSavingsForMonth(mk, value) {
   _saveSavingsMap(map);
 }
 
-const DEFAULT_INCOME = 999;
+const DEFAULT_INCOME = 1000;
 
 /** Load the full { "YYYY-MM": number } map from storage */
 function _loadIncomeMap() {
