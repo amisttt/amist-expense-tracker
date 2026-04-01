@@ -706,6 +706,20 @@ body {
   background: var(--primary); border-radius: 2px;
 }
 
+#savings-input {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.95);
+  font-size: 12px;
+  font-weight: 600;
+  width: 70px;
+  outline: none;
+}
+
+#savings-input::placeholder {
+  color: rgba(255,255,255,0.6);
+}
+
 .nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.2px; }
 .nav-fab-space { flex: 1; pointer-events: none; }
 
