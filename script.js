@@ -1271,45 +1271,76 @@ function renderSummary() {
 // ─────────────────────────────────────────
 
 function setupCCScreen() {
-  // ── Limit modal ──
-  const limitModal = document.getElementById('cc-limit-modal');
-  const limitInput = document.getElementById('cc-limit-input');
+  try {
+    const limitModal = document.getElementById('cc-limit-modal');
+    const limitInput = document.getElementById('cc-limit-input');
 
-  document.getElementById('btn-edit-limit').addEventListener('click', () => {
-    limitInput.value         = _ccData.limit || '';
-    limitModal.style.display = 'flex';
-    setTimeout(() => limitInput.focus(), 100);
-  });
-  document.getElementById('cc-limit-cancel').addEventListener('click', () => {
-    limitModal.style.display = 'none';
-  });
-  limitModal.addEventListener('click', e => {
-    if (e.target === limitModal) limitModal.style.display = 'none';
-  });
-  document.getElementById('cc-limit-save').addEventListener('click', () => {
-    const v = parseFloat(limitInput.value);
-    if (isNaN(v) || v < 0) return;
-    _ccData.limit            = v;
-    saveCC();
-    limitModal.style.display = 'none';
-    render();
-  });
-  limitInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('cc-limit-save').click();
-  });
+    const btnEdit = document.getElementById('btn-edit-limit');
+    if (btnEdit && limitModal && limitInput) {
+      btnEdit.addEventListener('click', () => {
+        limitInput.value = _ccData.limit || '';
+        limitModal.style.display = 'flex';
+        setTimeout(() => limitInput.focus(), 100);
+      });
+    }
 
-  // ── Add CC expense modal ──
-  const addModal = document.getElementById('cc-add-modal');
-  document.getElementById('btn-add-cc-expense').addEventListener('click', openCCAddModal);
-  document.getElementById('cc-add-close').addEventListener('click', () => {
-    addModal.style.display = 'none';
-  });
-  addModal.addEventListener('click', e => {
-    if (e.target === addModal) addModal.style.display = 'none';
-  });
-  document.getElementById('btn-save-cc').addEventListener('click', handleSaveCC);
+    const cancelBtn = document.getElementById('cc-limit-cancel');
+    if (cancelBtn && limitModal) {
+      cancelBtn.addEventListener('click', () => {
+        limitModal.style.display = 'none';
+      });
+    }
 
-  renderCCCategoryPicker();
+    if (limitModal) {
+      limitModal.addEventListener('click', e => {
+        if (e.target === limitModal) limitModal.style.display = 'none';
+      });
+    }
+
+    const saveBtn = document.getElementById('cc-limit-save');
+    if (saveBtn && limitInput && limitModal) {
+      saveBtn.addEventListener('click', () => {
+        const v = parseFloat(limitInput.value);
+        if (isNaN(v) || v < 0) return;
+        _ccData.limit = v;
+        saveCC();
+        limitModal.style.display = 'none';
+        render();
+      });
+    }
+
+    if (limitInput) {
+      limitInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && saveBtn) saveBtn.click();
+      });
+    }
+
+    const btnAdd = document.getElementById('btn-add-cc-expense');
+    const addModal = document.getElementById('cc-add-modal');
+
+    if (btnAdd) btnAdd.addEventListener('click', openCCAddModal);
+
+    const closeBtn = document.getElementById('cc-add-close');
+    if (closeBtn && addModal) {
+      closeBtn.addEventListener('click', () => {
+        addModal.style.display = 'none';
+      });
+    }
+
+    if (addModal) {
+      addModal.addEventListener('click', e => {
+        if (e.target === addModal) addModal.style.display = 'none';
+      });
+    }
+
+    const saveCCBtn = document.getElementById('btn-save-cc');
+    if (saveCCBtn) saveCCBtn.addEventListener('click', handleSaveCC);
+
+    renderCCCategoryPicker();
+
+  } catch (e) {
+    console.error('setupCCScreen crashed:', e);
+  }
 }
 
 function openCCAddModal() {
