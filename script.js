@@ -556,9 +556,13 @@ document.addEventListener('DOMContentLoaded', () => {
         handleMonthTransition();
 
         setupGreeting();
+        console.log("setupNav running");
         setupNav();
+        console.log("setupAddForm running");
         setupAddForm();
+        console.log("setupAddForm running");
         setupIncomeModal();
+        console.log("setupIncomeModal running");
         setupCCScreen();
 
         render();
