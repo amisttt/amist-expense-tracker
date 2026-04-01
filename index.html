@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>FinTrack</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- jsPDF — used only for monthly report export, no other dependency -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══════════════════════════════════
+       SCREEN: DASHBOARD
+  ══════════════════════════════════════ -->
+  <div class="screen active" id="screen-dashboard">
+    <div class="sticky-header">
+      <div class="header-left">
+        <p class="header-greeting" id="header-greeting">Good morning</p>
+        <h1 class="app-title">FinTrack</h1>
+      </div>
+      <div class="header-right">
+        <button class="icon-btn" id="btn-set-income" title="Set monthly income">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        </button>
+        <div class="avatar">A</div>
+      </div>
+    </div>
+    <div class="screen-content">
+      <div class="balance-hero-card">
+        <div class="balance-hero-top">
+          <div class="balance-col">
+            <span class="balance-col-label">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 6 10.5 15.5 15.5 10.5 23 18"/></svg>
+              Income
+            </span>
+            <span class="balance-col-amount" id="dash-income">₹0</span>
+          </div>
+          <div class="balance-col-divider"></div>
+          <div class="balance-col">
+            <span class="balance-col-label">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+              Expenses
+            </span>
+            <span class="balance-col-amount" id="dash-expense">₹0</span>
+          </div>
+        </div>
+        <div class="balance-hero-bottom">
+          <div>
+            <p class="balance-bottom-label">Balance This Month</p>
+            <p class="balance-bottom-amount" id="dash-balance">₹0</p>
+          </div>
+          <div class="balance-badge" id="dash-badge">
+            <span id="dash-badge-text">—</span>
+          </div>
+        </div>
+        <div class="balance-hero-glow"></div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Spending Trend</h2>
+            <p class="card-subtitle" id="chart-month-label"></p>
+          </div>
+          <div class="chart-total-badge" id="chart-total"></div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="spending-chart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Categories</h2>
+          <span class="card-subtitle">This Month</span>
+        </div>
+        <div id="category-breakdown"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Recent</h2>
+          <button class="link-btn" id="btn-view-all">View All →</button>
+        </div>
+        <div id="recent-transactions"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       SCREEN: TRANSACTIONS
+  ══════════════════════════════════════ -->
+  <div class="screen" id="screen-transactions">
+    <div class="sticky-header">
+      <div class="header-left">
+        <p class="header-greeting" id="txn-month-label"></p>
+        <h1 class="app-title">Transactions</h1>
+      </div>
+      <div class="header-right">
+        <div class="txn-count-badge" id="txn-count-badge"></div>
+      </div>
+    </div>
+    <div class="screen-content">
+      <div id="transactions-list"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       SCREEN: ADD EXPENSE
+  ══════════════════════════════════════ -->
+  <div class="screen" id="screen-add">
+    <div class="sticky-header add-header">
+      <button class="back-btn" id="btn-back-add">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <h1 class="app-title">Add Entry</h1>
+      <div style="width:40px"></div>
+    </div>
+    <div class="screen-content">
+      <div class="type-toggle-wrap">
+        <div class="type-toggle" id="type-toggle">
+          <button class="type-btn active" data-type="expense">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            Expense
+          </button>
+          <button class="type-btn" data-type="income">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 6 10.5 15.5 15.5 10.5 23 18"/></svg>
+            Income
+          </button>
+        </div>
+      </div>
+      <div class="amount-section">
+        <div class="amount-input-wrap">
+          <span class="currency-sym">₹</span>
+          <input type="number" id="input-amount" class="amount-input"
+            placeholder="0.00" inputmode="decimal" min="0" step="0.01" />
+        </div>
+      </div>
+      <div class="card form-card">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <div class="category-grid" id="category-picker"></div>
+        </div>
+        <div class="form-divider"></div>
+        <div class="form-group">
+          <label class="form-label">Note <span class="optional-tag">optional</span></label>
+          <input type="text" id="input-note" class="form-input"
+            placeholder="What was this for?" maxlength="80" />
+        </div>
+        <div class="form-divider"></div>
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" id="input-date" class="form-input" />
+        </div>
+      </div>
+      <button class="save-btn" id="btn-save-expense">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="save-btn-text">Save Expense</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       SCREEN: MONTHLY SUMMARY
+  ══════════════════════════════════════ -->
+  <div class="screen" id="screen-summary">
+    <div class="sticky-header">
+      <div class="header-left">
+        <p class="header-greeting">Past Months</p>
+        <h1 class="app-title">Summary</h1>
+      </div>
+      <div class="header-right">
+        <div class="savings-total-pill" id="total-savings-pill"></div>
+      </div>
+    </div>
+    <div class="screen-content">
+      <div id="monthly-summary-list"></div>
+      <div class="empty-state-wrap" id="summary-empty" style="display:none">
+        <div class="empty-icon">📅</div>
+        <p class="empty-title">No past months yet</p>
+        <p class="empty-sub">Summaries appear here after each month ends.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       SCREEN: CREDIT CARD
+  ══════════════════════════════════════ -->
+  <div class="screen" id="screen-cc">
+    <div class="sticky-header">
+      <div class="header-left">
+        <p class="header-greeting">Spending Tracker</p>
+        <h1 class="app-title">Credit Card</h1>
+      </div>
+      <div class="header-right">
+        <button class="icon-btn" id="btn-edit-limit" title="Edit credit limit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="screen-content">
+
+      <!-- CC Visual Card -->
+      <div class="cc-visual-card">
+        <div class="cc-top-row">
+          <div class="cc-chip">
+            <svg width="28" height="22" viewBox="0 0 28 22" fill="none">
+              <rect x="0.5" y="0.5" width="27" height="21" rx="3.5" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)"/>
+              <line x1="9" y1="0.5" x2="9" y2="21.5" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+              <line x1="19" y1="0.5" x2="19" y2="21.5" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+              <line x1="0.5" y1="7" x2="27.5" y2="7" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+              <line x1="0.5" y1="15" x2="27.5" y2="15" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+            </svg>
+          </div>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5">
+            <path d="M1 6c0 0 4-2 11-2s11 2 11 2v12s-4 2-11 2S1 18 1 18V6z"/><path d="M1 12h22"/>
+          </svg>
+        </div>
+        <div class="cc-middle">
+          <p class="cc-used-label">Amount Used</p>
+          <p class="cc-used-amount" id="cc-used-amount">₹0</p>
+        </div>
+        <div class="cc-bottom-row">
+          <div>
+            <p class="cc-field-label">Total Limit</p>
+            <p class="cc-field-val" id="cc-limit-display">Tap ✏️ to set</p>
+          </div>
+          <div style="text-align:right">
+            <p class="cc-field-label">Available</p>
+            <p class="cc-field-val" id="cc-avail-display">—</p>
+          </div>
+        </div>
+        <div class="cc-glow"></div>
+      </div>
+
+      <!-- Utilization -->
+      <div class="card cc-util-card">
+        <div class="cc-util-header">
+          <span class="card-title">Utilization</span>
+          <span class="cc-util-pct" id="cc-util-pct">0%</span>
+        </div>
+        <div class="cc-util-bar-wrap">
+          <div class="cc-util-bar" id="cc-util-bar" style="width:0%"></div>
+        </div>
+        <p class="cc-util-hint" id="cc-util-hint">Keep below 30% for a healthy credit score</p>
+        <button class="cc-add-btn" id="btn-add-cc-expense">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add CC Expense
+        </button>
+      </div>
+
+      <!-- CC Transactions -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">CC Transactions</h2>
+          <span class="card-subtitle" id="cc-txn-count">0 entries</span>
+        </div>
+        <div id="cc-transactions-list">
+          <p class="empty-state">No CC transactions yet.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─────── INCOME MODAL ─────── -->
+  <div class="modal-overlay" id="income-modal" style="display:none">
+    <div class="modal-card">
+      <h3 class="modal-title">Monthly Income</h3>
+      <p class="modal-sub">Your fixed monthly take-home salary</p>
+      <div class="modal-input-wrap">
+        <span class="modal-currency">₹</span>
+        <input type="number" id="income-input" class="modal-input" placeholder="e.g. 24000" inputmode="decimal"/>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel" id="modal-cancel">Cancel</button>
+        <button class="modal-save"   id="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────── CC LIMIT MODAL ─────── -->
+  <div class="modal-overlay" id="cc-limit-modal" style="display:none">
+    <div class="modal-card">
+      <h3 class="modal-title">Credit Card Limit</h3>
+      <p class="modal-sub">Set your total available credit limit</p>
+      <div class="modal-input-wrap">
+        <span class="modal-currency">₹</span>
+        <input type="number" id="cc-limit-input" class="modal-input" placeholder="e.g. 100000" inputmode="decimal"/>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel" id="cc-limit-cancel">Cancel</button>
+        <button class="modal-save"   id="cc-limit-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────── CC ADD EXPENSE MODAL ─────── -->
+  <div class="modal-overlay" id="cc-add-modal" style="display:none">
+    <div class="modal-card cc-add-modal-card">
+      <div class="cc-modal-header">
+        <h3 class="modal-title">CC Expense</h3>
+        <button class="modal-close-btn" id="cc-add-close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-input-wrap cc-amount-wrap">
+        <span class="modal-currency">₹</span>
+        <input type="number" id="cc-amount-input" class="modal-input" placeholder="0.00" inputmode="decimal"/>
+      </div>
+      <div class="cc-add-fields">
+        <div class="cc-field-group">
+          <label class="form-label">Category</label>
+          <div class="category-grid" id="cc-category-picker"></div>
+        </div>
+        <div class="cc-field-group">
+          <label class="form-label">Note <span class="optional-tag">optional</span></label>
+          <input type="text" id="cc-note-input" class="form-input" placeholder="What did you buy?" maxlength="80"/>
+        </div>
+        <div class="cc-field-group">
+          <label class="form-label">Date</label>
+          <input type="date" id="cc-date-input" class="form-input"/>
+        </div>
+      </div>
+      <button class="save-btn" id="btn-save-cc" style="background:linear-gradient(135deg,#0F172A,#1E3A5F)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Add to Card
+      </button>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" id="fab-add" aria-label="Add expense">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-screen="screen-dashboard">
+      <div class="nav-icon-wrap">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" data-screen="screen-transactions">
+      <div class="nav-icon-wrap">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </div>
+      <span class="nav-label">Transactions</span>
+    </button>
+    <div class="nav-fab-space"></div>
+    <button class="nav-item" data-screen="screen-summary">
+      <div class="nav-icon-wrap">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      <span class="nav-label">Summary</span>
+    </button>
+    <button class="nav-item" data-screen="screen-cc">
+      <div class="nav-icon-wrap">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      </div>
+      <span class="nav-label">Card</span>
+    </button>
+  </nav>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>
