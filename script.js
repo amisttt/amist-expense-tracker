@@ -660,8 +660,13 @@ function renderDashboard() {
     savingsInput.oninput = (e) => {
       const val = Math.max(0, Number(e.target.value) || 0);
       setSavingsForMonth(cmk, val);
-      render();
-  };
+
+      // DO NOT call generic render
+      renderDashboard();
+
+      // If your app has global refresh:
+      if (typeof renderAll === 'function') renderAll();
+   };
 }
 
   // Savings badge — guard division by zero
