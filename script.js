@@ -630,55 +630,71 @@ function showScreen(id) {
 // Past summaries are not touched.
 // ─────────────────────────────────────────
 function setupIncomeModal() {
-  const modal   = document.getElementById('income-modal');
-  const inputEl = document.getElementById('income-input');
-  const btnOpen = document.getElementById('btn-set-income');
-  const btnCancel = document.getElementById('modal-cancel');
-  const btnSave = document.getElementById('modal-save');
+  try {
+    const modal     = document.getElementById('income-modal');
+    const inputEl   = document.getElementById('income-input');
+    const btnOpen   = document.getElementById('btn-set-income');
+    const btnCancel = document.getElementById('modal-cancel');
+    const btnSave   = document.getElementById('modal-save');
 
-  if (!modal || !inputEl) return;
-
-  // Open modal
-  if (btnOpen) {
-    btnOpen.addEventListener('click', () => {
-      inputEl.value = getIncome() || '';
-      modal.style.display = 'flex';
-      setTimeout(() => inputEl.focus(), 100);
-    });
-  }
-
-  // Cancel
-  if (btnCancel) {
-    btnCancel.addEventListener('click', () => {
-      modal.style.display = 'none';
-    });
-  }
-
-  // Click outside modal
-  modal.addEventListener('click', e => {
-    if (e.target === modal) modal.style.display = 'none';
-  });
-
-  // Save
-  if (btnSave) {
-    btnSave.addEventListener('click', () => {
-      const v = parseFloat(inputEl.value);
-      if (isNaN(v) || v < 0) return;
-
-      setIncome(v);
-      modal.style.display = 'none';
-
-      render(); // keep this (correct here)
-    });
-  }
-
-  // Enter key
-  inputEl.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && btnSave) {
-      btnSave.click();
+    if (!modal || !inputEl) {
+      console.warn('Income modal elements missing');
+      return;
     }
-  });
+
+    // Open modal
+    if (btnOpen) {
+      btnOpen.addEventListener('click', () => {
+        inputEl.value = getIncome() || '';
+        modal.style.display = 'flex';
+        setTimeout(() => inputEl.focus(), 100);
+      });
+    }
+
+    // Cancel
+    if (btnCancel) {
+      btnCancel.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    // Click outside modal (SAFE)
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+
+    // Save
+    if (btnSave) {
+      btnSave.addEventListener('click', () => {
+        const v = parseFloat(inputEl.value);
+        if (isNaN(v) || v < 0) return;
+
+        setIncome(v);
+        modal.style.display = 'none';
+
+        render();
+      });
+    }
+
+    // Enter key
+    if (inputEl) {
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && btnSave) {
+          btnSave.click();
+        }
+      });
+    }
+
+  } catch (e) {
+    console.error('setupIncomeModal crashed:', e);
+  }
 }
+
+console.log("setupIncomeModal completed");
 // ─────────────────────────────────────────
 // DASHBOARD
 // All figures computed from _expenses raw
