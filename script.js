@@ -546,17 +546,30 @@ function render() {
 // ─────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
-  loadAll();
-  initFirstLaunch();
-  handleMonthTransition();
+  try {
+    loadAll();
 
-  setupGreeting();
-  setupNav();
-  setupAddForm();
-  setupIncomeModal();
-  setupCCScreen();
+    // defer rest to ensure DOM + storage stable
+    setTimeout(() => {
+      try {
+        initFirstLaunch();
+        handleMonthTransition();
 
-  render();
+        setupGreeting();
+        setupNav();
+        setupAddForm();
+        setupIncomeModal();
+        setupCCScreen();
+
+        render();
+      } catch (e) {
+        console.error('Init inner failed:', e);
+      }
+    }, 50);
+
+  } catch (e) {
+    console.error('Init failed:', e);
+  }
 });
 
 function setupGreeting() {
